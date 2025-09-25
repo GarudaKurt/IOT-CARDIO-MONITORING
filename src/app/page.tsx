@@ -77,7 +77,8 @@ export default function DashboardPage() {
         const hrValue = parseInt(value || "0");
         return hrValue < 95;
       case "Fall":
-        return value === "Emergency Occurs";
+        const status = parseInt(value || "0");
+        return status < 1.5;
       default:
         return false;
     }
@@ -86,13 +87,13 @@ export default function DashboardPage() {
   const stats = [
     {
       title: "Fall Detection Alerts",
-      value: fall,
+      value: parseInt(fall || "0") < 0 ? "Emergency Occurs" : "Stable...",
       icon: MessageCircleWarning,
       animation: {
         animate: { rotate: [0, -10, 10, -10, 0] },
         transition: { duration: 1, repeat: Infinity },
       },
-      positive: fall === "Emergency Occurs",
+      positive: parseInt(fall || "0") >= 0, // stable is positive
       subtitle: logs.fall,
       note: "Check immediately",
       type: "Fall",
@@ -105,7 +106,7 @@ export default function DashboardPage() {
         animate: { scale: [1, 1.3, 1] },
         transition: { duration: 1, repeat: Infinity },
       },
-      positive: true,
+      positive: !getWarning("ECG", ecg),
       subtitle: logs.ecg,
       note: "Monitor regularly",
       type: "ECG",
@@ -118,7 +119,7 @@ export default function DashboardPage() {
         animate: { opacity: [1, 0.5, 1], scale: [1, 1.1, 1] },
         transition: { duration: 1.5, repeat: Infinity },
       },
-      positive: parseInt(hr || "0") > 95,
+      positive: !getWarning("HR", hr),
       subtitle: logs.hr,
       note: "Healthy range",
       type: "HR",
