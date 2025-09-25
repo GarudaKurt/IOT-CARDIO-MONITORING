@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const [ecg, setEcg] = useState<string>("-");
   const [hr, setHr] = useState<string>("-");
   const [fall, setFall] = useState<string>("-");
-  const [date, setDate] = useState<string>("-");
 
   const [logs, setLogs] = useState<{ [key: string]: string }>({
     ecg: "-",
@@ -64,8 +63,6 @@ export default function DashboardPage() {
           setLogs((prev) => ({ ...prev, fall: now }));
           prevValues.current.fall = fetchData.fall;
         }
-
-        setDate(fetchData.date || "-");
       }
     });
     return () => unsubscribe();
