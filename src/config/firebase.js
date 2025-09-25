@@ -6,13 +6,13 @@ import { getDatabase } from "firebase/database"; // Import Realtime Database
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDNf6ud5zoSSfpC5CLpK0BhlsQVNjf59rk",
+  authDomain: "cardio-and-fall-detector.firebaseapp.com",
+  databaseURL: "https://cardio-and-fall-detector-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "cardio-and-fall-detector",
+  storageBucket:"cardio-and-fall-detector.firebasestorage.app",
+  messagingSenderId: "17068599356",
+  appId: "1:17068599356:web:0161647645eb18b460bb39",
 };
 
 // Initialize Firebase
