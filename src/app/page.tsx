@@ -20,11 +20,10 @@ import {
 import { motion } from "framer-motion";
 import { database } from "../config/firebase";
 import { firestore } from "../config/firebase";
-import { auth } from "../config/firebase";
 import { ref, onValue } from "firebase/database";
 import { doc, setDoc, collection } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
-import { onAuthStateChanged } from "firebase/auth";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const [ecg, setEcg] = useState<string>("-");
@@ -199,26 +198,14 @@ export default function DashboardPage() {
           Dashboard
         </h1>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer">
-              <AvatarImage
-                src="https://github.com/shadcn.png"
-                alt="User Avatar"
-              />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-40 bg-zinc-900 text-white border border-zinc-800">
-            <DropdownMenuItem
-              className="flex items-center gap-2 cursor-pointer hover:bg-zinc-800"
-              onClick={() => alert("Logging out...")}
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-4">
+          {/* EventLog Icon */}
+          <Link href="/eventlogs">
+            <div className="cursor-pointer p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 transition">
+              <MessageCircleWarning className="w-6 h-6 text-yellow-400" />
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
