@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,12 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { database } from "../config/firebase";
+import { firestore } from "../config/firebase";
+import { auth } from "../config/firebase";
 import { ref, onValue } from "firebase/database";
+import { doc, setDoc, collection } from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function DashboardPage() {
   const [ecg, setEcg] = useState<string>("-");
@@ -40,12 +44,13 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const dataRef = ref(database, "monitoring");
-    const unsubscribe = onValue(dataRef, (snapshot) => {
+    const dataRef = ref(database, "activation");
+    const unsubscribe = onValue(dataRef, async (snapshot) => {
       const fetchData = snapshot.val();
       if (fetchData) {
-        const now = new Date().toLocaleString();
+        const now = new Date().toISOString();
 
+        // Update local UI state
         if (fetchData.ecg && fetchData.ecg !== prevValues.current.ecg) {
           setEcg(fetchData.ecg);
           setLogs((prev) => ({ ...prev, ecg: now }));
@@ -63,22 +68,78 @@ export default function DashboardPage() {
           setLogs((prev) => ({ ...prev, fall: now }));
           prevValues.current.fall = fetchData.fall;
         }
+
+        // 🚨 Save only warning events
+        const warnings: Array<{
+          type: string;
+          value: string;
+          status: string;
+          timestamp: string;
+        }> = [];
+
+        if (getWarning("ECG", fetchData.ecg)) {
+          warnings.push({
+            type: "ECG",
+            value: fetchData.ecg,
+            status: "warning",
+            timestamp: now,
+          });
+        }
+        if (getWarning("HR", fetchData.hr)) {
+          warnings.push({
+            type: "HR",
+            value: fetchData.hr,
+            status: "warning",
+            timestamp: now,
+          });
+        }
+        if (getWarning("Fall", fetchData.fall)) {
+          warnings.push({
+            type: "Fall",
+            value: fetchData.fall,
+            status: "warning",
+            timestamp: now,
+          });
+        }
+
+        // Store warnings in Firestore using a hardcoded UID
+        if (warnings.length > 0) {
+          try {
+            const hardcodedUID = "fiKHiNXscPNq7Y4ZcWiEAaFUcBH2"; // ← your test UID
+            const userMonitoringCollectionRef = collection(
+              firestore,
+              "users",
+              hardcodedUID, // document ID
+              "Eventlogs" // subcollection
+            );
+
+            for (const warning of warnings) {
+              const newDocRef = doc(userMonitoringCollectionRef, uuidv4());
+              await setDoc(newDocRef, warning);
+            }
+
+            console.log("⚠️ Warning records saved:", warnings);
+          } catch (error) {
+            console.error("Error saving warning data:", error);
+          }
+        }
       }
     });
+
     return () => unsubscribe();
   }, []);
 
   const getWarning = (type: string, value: string) => {
+    const num = parseFloat(value || "0");
+    if (isNaN(num)) return false;
+
     switch (type) {
       case "ECG":
-        const ecgValue = parseInt(value || "0");
-        return ecgValue < 60 || ecgValue > 100;
+        return num < 60 || num > 100;
       case "HR":
-        const hrValue = parseInt(value || "0");
-        return hrValue < 95;
+        return num < 95;
       case "Fall":
-        const status = parseInt(value || "0");
-        return status < 1.5;
+        return num < 1.5;
       default:
         return false;
     }
@@ -87,20 +148,22 @@ export default function DashboardPage() {
   const stats = [
     {
       title: "Fall Detection Alerts",
-      value: parseInt(fall || "0") < 0 ? "Emergency Occurs" : "Stable...",
+      value: parseFloat(fall || "0"),
+      display: parseFloat(fall || "0") < 0 ? "Emergency Occurs" : "Stable...",
       icon: MessageCircleWarning,
       animation: {
         animate: { rotate: [0, -10, 10, -10, 0] },
         transition: { duration: 1, repeat: Infinity },
       },
-      positive: parseInt(fall || "0") >= 0, // stable is positive
+      positive: parseFloat(fall || "0") >= 0,
       subtitle: logs.fall,
       note: "Check immediately",
       type: "Fall",
     },
     {
       title: "ECG Monitoring",
-      value: ecg + " bpm",
+      value: parseFloat(ecg || "0"),
+      display: ecg + " bpm",
       icon: HeartCrackIcon,
       animation: {
         animate: { scale: [1, 1.3, 1] },
@@ -113,7 +176,8 @@ export default function DashboardPage() {
     },
     {
       title: "Pulse Oximeter",
-      value: hr + "%",
+      value: parseFloat(hr || "0"),
+      display: hr + "%",
       icon: HeartPulseIcon,
       animation: {
         animate: { opacity: [1, 0.5, 1], scale: [1, 1.1, 1] },
@@ -172,7 +236,7 @@ export default function DashboardPage() {
         >
           {stats.map((stat, index) => {
             const Icon = stat.icon;
-            const isWarning = getWarning(stat.type, stat.value);
+            const isWarning = getWarning(stat.type, stat.value.toString());
 
             return (
               <motion.div
@@ -225,7 +289,7 @@ export default function DashboardPage() {
                       >
                         <Icon className="w-8 h-8 text-zinc-400" />
                       </motion.div>
-                      {stat.value}
+                      {stat.display}
                     </div>
                     <p className="mt-2 font-medium text-sm sm:text-base">
                       Last Update: {stat.subtitle}{" "}
