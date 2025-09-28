@@ -2,16 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
   ArrowUpRight,
   ArrowDownRight,
-  LogOut,
   BarChartBigIcon,
   HeartCrackIcon,
   HeartPulseIcon,
@@ -43,7 +35,7 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const dataRef = ref(database, "activation");
+    const dataRef = ref(database, "monitoring");
     const unsubscribe = onValue(dataRef, async (snapshot) => {
       const fetchData = snapshot.val();
       if (fetchData) {
@@ -104,7 +96,7 @@ export default function DashboardPage() {
         // Store warnings in Firestore using a hardcoded UID
         if (warnings.length > 0) {
           try {
-            const hardcodedUID = "fiKHiNXscPNq7Y4ZcWiEAaFUcBH2"; // ← your test UID
+            const hardcodedUID = "Fy4pEk6L8nhSEfcS4MRS94Y4o373"; // ← your test UID
             const userMonitoringCollectionRef = collection(
               firestore,
               "users",
